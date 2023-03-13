@@ -13,10 +13,17 @@ const startCluster = async () => {
             concurrency: Cluster.CONCURRENCY_PAGE,
             maxConcurrency: 3,
 			puppeteer: puppeteerExtra,
-			puppeteerOptions: {headless: true, args : [
-				'--window-size=1920,1080',
-			  ]},
-			// timeout: 60000,
+			puppeteerOptions: {
+				headless: true,
+				executablePath: '/usr/bin/chromium-browser', 
+				args: [ 
+					`--window-size=1920,1080`,
+					'--disable-gpu', 
+					'--disable-setuid-sandbox', 
+					'--no-sandbox', 
+					'--no-zygote' 
+				]},
+			timeout: 60000,
             // monitor: true
         });
 	} catch (err) {

@@ -10,6 +10,7 @@ const upwork = require('./routers/upworkRouter');
 const notification = require('./notification');
 const ParsedJobsModel = require('./db/Models/ParsedJobsModel');
 dotenv.config({ path: __dirname + './../.env' });
+const { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } = process.env;
 
 const server = async (port, callback) => {
 	try {
@@ -31,7 +32,6 @@ const server = async (port, callback) => {
 			})
 
 			socket.on("new jobs", (jobs) => {
-				console.log('new jobs')
 				sockets.scraper.emit('scrape jobs', jobs)
 			})
 
@@ -41,12 +41,26 @@ const server = async (port, callback) => {
 				if (parsedJobs){
 					parsedDoc.parsed.push(...parsedJobs)
 					await parsedDoc.save();
+					console.log(parsedJobs.reverse().length, 'parse')
 					io.to('parsed messages').emit("new jobs", parsedJobs.reverse());
-					notification.sendNotifications(parsedJobs)
+					notification.sendNotifications(parsedJobs); 
 				}
 			})
+
+			socket.on("apply job", (data) => {
+				sockets.scraper.emit('apply job', data);
+				sockets.scraper.once('bid details', (data) => {
+					socket.emit('bid details', data)
+				})
+			})
+
+			socket.on('set bid', (data) => {
+				sockets.scraper.emit('set bid', data);
+				sockets.scraper.once('alert', data => {
+					socket.emit("alert", data)
+				})
+			})
 		 });
-		 
 		
 		app.use(express.json());
 		app.use(cors());
@@ -55,7 +69,7 @@ const server = async (port, callback) => {
 			res.status(404).send({ data: { message: "Not Found" } });
 		});
 		mongoose.set("strictQuery", false);
-		await mongoose.connect('mongodb+srv://dimabondarenko:12345@cluster0.immja2r.mongodb.net/?retryWrites=true&w=majority');
+		await mongoose.connect(`mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}`);
 		server.listen(port, callback);
 	} catch (error) {
 		console.log(error);

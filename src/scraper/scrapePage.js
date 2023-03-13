@@ -1,11 +1,9 @@
-const login = require('./utils/login');
+// const login = require('./utils/login');
 const saveCookie = require('./utils/saveCookie');
 const loadCookie = require('./utils/loadCookie');
 const scraper = require('./scraper');
 
-const compareUrl = (fisrtUrl, secondUrl) => {
-    return fisrtUrl.split('//')[1] != secondUrl.split('//')[1]
-}
+const compareUrl = require('./utils/compareUrl');
 
 const user = {
     username: 'dm@dev-3.com',
@@ -17,7 +15,7 @@ const scrapePage = async ({ page, data: {url, id, payment_verification_status} }
     await loadCookie(page);
     await page.goto(url , {waitUntil: 'domcontentloaded'});
     if (compareUrl(page.url(), url)){
-        await login(page, user);
+        await scraper.login(page, user);
         await page.waitForNavigation({waitUntil: 'domcontentloaded'});
         await page.goto(url , {waitUntil: 'domcontentloaded'});
     }

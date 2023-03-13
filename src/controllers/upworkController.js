@@ -1,5 +1,6 @@
 const UpworkApi = require('upwork-api');
 const Search = require('upwork-api/lib/routers/jobs/search.js').Search;
+const path = require('path')
 const fs = require('fs');
 const { upworkScore, DbJobsToRes, detailJob } = require('../helpers');
 const Profile = require('upwork-api/lib/routers/jobs/profile.js').Profile;
@@ -8,8 +9,7 @@ const JobsModel = require('../db/Models/JobsModel');
 const UserModel = require('../db/Models/UserModel');
 // const db = require('./../db');
 
-// const { env: { PORT }} = process;
-const PORT = 3306;
+const { env: { PORT }} = process;
 
 let isAccess = false;
 
@@ -27,9 +27,10 @@ const config = {
 
 let api;
 
-const saveOptions = fs.readFileSync(__dirname + '../../options.json','utf8');
+const saveOptions = fs.readFileSync(path.resolve(__dirname + '../../options.json'),'utf8');
 
 try {
+  
   accessParams.accessToken = JSON.parse(saveOptions).accessToken;
   accessParams.accessTokenSecret = JSON.parse(saveOptions).accessTokenSecret;
   config.consumerKey = JSON.parse(saveOptions).consumerKey;
@@ -41,6 +42,7 @@ try {
 
 const upwork = {
 	getJob: async (data, res) => {
+    console.log('upwork controller')
     
 		const { q = '', title = '', skills = '', min_score = '' } = data;
 		const paramsSearch = {'q': q, 'title' : title, 'skills' : skills, 'paging': '0;50', 'category2': '531770282580668418' }; // paging how match jobs we need to get
@@ -79,13 +81,11 @@ const upwork = {
 	},
 	getJobProfile: async (data, res) => {
 		const jobId = data.params.id;
-    console.log(jobId)
 		const jobsDoc = await JobsModel.findOne();
 		const job = jobsDoc.jobs.find(job => job.id == jobId);
 
     const parsedJobDoc = await ParsedJobsModel.findOne();
     const parsedJob = parsedJobDoc.parsed.find(job => job.id == jobId)
-    
 		res.status(200).json({job: job, parsed: parsedJob})
 	},
 

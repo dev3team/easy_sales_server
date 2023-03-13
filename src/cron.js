@@ -40,7 +40,6 @@ const upwork = {
         const jobs = new Search(api);
         
     await jobs.find(paramsSearch, async (error, data) => {
-            
             if (!error) {
                 // const resJobs = upworkScore(data, MINIMAL_SCORE);
                 // await upwork.saveJobs(data.jobs)
@@ -53,9 +52,9 @@ const upwork = {
         api.setAccessToken(accessParams.accessToken , accessParams.accessTokenSecret, ()=>{});
     },
     saveJobs: async (jobs) => {
-        
         const jobsDoc = await Jobs.findOne(); // start 
         if (jobsDoc){      ///check an availability of a document
+            console.log(jobsDoc.jobs.length)
             let checkedJobs;
             const lastJobOfDB = jobsDoc.jobs[jobsDoc.jobs.length-1];
             const lastJobIndex = jobs.findIndex(item => item.id == lastJobOfDB.id); //find index last job of DB in new jobs 
@@ -80,9 +79,10 @@ const upwork = {
             const newJobs = new Jobs();
             newJobs.jobs.push(...jobs.reverse());
             await newJobs.save();
+
+            const jobsDoc = await Jobs.findOne(); 
             upwork.sendToServer(jobs)
         }
-
     },
     sendToServer: (jobs) => {
         const clearedJobs = jobs.map((item) => {
