@@ -1,7 +1,7 @@
 version: "3"
 services:
   nodeapp:
-    container_name: node
+    container_name: api
     restart: always
     build:
       context: .
@@ -17,7 +17,7 @@ services:
       - node-webapp-network
   
   mongodb:
-    container_name: mongodb
+    container_name: db
     image: mongo:6.0
     volumes:
       - ~/mongo:/data/db
