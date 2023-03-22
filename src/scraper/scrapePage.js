@@ -2,13 +2,12 @@
 const saveCookie = require('./utils/saveCookie');
 const loadCookie = require('./utils/loadCookie');
 const scraper = require('./scraper');
-
 const compareUrl = require('./utils/compareUrl');
 
+
 const user = {
-    username: 'dm@dev-3.com',
-    password: 'qazwsxedc123!',
-    answer: 'barcelona'
+    username: process.env.UPWORK_USERNAME,
+    password: process.env.UPWORK_PASSWORD,
 }
 
 const scrapePage = async ({ page, data: {url, id, payment_verification_status} }) => {

@@ -42,7 +42,7 @@ const server = async (port, callback) => {
 					parsedDoc.parsed.push(...parsedJobs)
 					await parsedDoc.save();
 					console.log(parsedJobs.reverse().length, 'parse')
-					io.to('parsed messages').emit("new jobs", parsedJobs.reverse());
+					io.to('parsed messages').emit("new jobs", parsedJobs);
 					notification.sendNotifications(parsedJobs); 
 				}
 			})

@@ -1,5 +1,6 @@
 const {io} = require('socket.io-client');
-const socket = io("ws://localhost:3306");
+const PORT = process.env.PORT
+const socket = io(`ws://localhost:${PORT}`);
 const { Worker } = require('worker_threads');
 
 const runService = (workerData, path) => {

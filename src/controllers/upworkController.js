@@ -42,8 +42,6 @@ try {
 
 const upwork = {
 	getJob: async (data, res) => {
-    console.log('upwork controller')
-    
 		const { q = '', title = '', skills = '', min_score = '' } = data;
 		const paramsSearch = {'q': q, 'title' : title, 'skills' : skills, 'paging': '0;50', 'category2': '531770282580668418' }; // paging how match jobs we need to get
 
@@ -82,10 +80,10 @@ const upwork = {
 	getJobProfile: async (data, res) => {
 		const jobId = data.params.id;
 		const jobsDoc = await JobsModel.findOne();
-		const job = jobsDoc.jobs.find(job => job.id == jobId);
+		const job = jobsDoc.jobs.find(job => job?.id == jobId);
 
     const parsedJobDoc = await ParsedJobsModel.findOne();
-    const parsedJob = parsedJobDoc.parsed.find(job => job.id == jobId)
+    const parsedJob = parsedJobDoc.parsed.find(job => job?.id == jobId)
 		res.status(200).json({job: job, parsed: parsedJob})
 	},
 

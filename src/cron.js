@@ -1,7 +1,8 @@
 const UpworkApi = require('upwork-api');
 const Jobs = require('./db/Models/JobsModel');
 const {io} = require('socket.io-client');
-const socket = io("ws://localhost:3306");
+const PORT = process.env.PORT
+const socket = io(`ws://localhost:${PORT}`);
 socket.on('connect', () => {
     socket.emit('init', 'cron');
 })

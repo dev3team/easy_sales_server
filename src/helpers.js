@@ -128,6 +128,7 @@ const prevReview = [
 
 const makeCall = async (req, res, func) => {
 	try {
+    if(req.headers["access-key"] !== '13579') throw new Error('access denied');
 		const data = req.method === 'GET' ? req.query : req.body;
 		data.params = req.params || {};
 		await func(data, res);
