@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const upwork = require('../src/cron');
+const upwork = require('./cronService');
 
 const cronPing = async () => {
     cron.schedule("* * * * *", async() => {

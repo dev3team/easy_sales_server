@@ -1,6 +1,6 @@
 const {workerData, parentPort} = require('worker_threads');
-const scrapeClusterController = require('./pageController'); 
-const clusterObject = require('./cluster');
+const scrapeClusterController = require('../pageController'); 
+const clusterObject = require('../cluster');
 
 const runWorker = async () => {
     const cluster = await clusterObject.startCluster();

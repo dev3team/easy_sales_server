@@ -15,6 +15,6 @@ const startBrowser = async () => {
 	return browser;
 }
 
-module.exports = {
-    startBrowser
-}
+// module.exports = {
+//     startBrowser
+// }

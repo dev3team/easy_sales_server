@@ -2,14 +2,10 @@ const UserModel = require('./db/Models/UserModel');
 const JobsModel = require('./db/Models/JobsModel');
 const {sendMessageToUserDevice} = require('./lib/firebase');
 
-
 const notification = {
     sendNotifications: async (jobs) => {
-        
         try {
             const filteredJobs = jobs.filter(item => notification.checkJobForNotification(item));
-            // const jobsWithTitle = await Promise.all(filteredJobs.map(async (job)=> notification.getJobInfomation(job)))
-
             const users = await UserModel.find();
             users.forEach((user) => {
                 filteredJobs.forEach(async (job) => {
@@ -36,8 +32,8 @@ const notification = {
         
     },
     checkJobForNotification: (job) => {
-        const {expertise, payment_verification_status, fixed_price, hourly_rate, id} = job; 
-        if(expertise == 'Expert' && payment_verification_status == 'VERIFIED' && (+fixed_price?.replace(/[^\d\.]*/g, '') >= 1000 || +hourly_rate?.split('-')[1].replace(/[^\d\.]*/g, '') > 30 ) ) return id
+        const {expertise, payment_verification_status, fixed_price, hourly_rate, id} = job;
+        if(expertise == 'Expert' && payment_verification_status == 'VERIFIED' && (+fixed_price?.replace(/[^\d\.]*/g, '') >= 1000 || +hourly_rate?.split('-')[1]?.replace(/[^\d\.]*/g, '') > 30 ) ) return id
     }
 }
 

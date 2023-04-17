@@ -5,7 +5,7 @@ const SELECTOR_CITY = 'ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bott
 const SELECTOR_REVIEWS = 'div.cfe-ui-job-about-client > div.text-muted.rating.mb-20 > span';
 const SELECTOR_HIRE_RATE = 'ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom li[data-qa="client-job-posting-stats"] > div.text-muted';
 const SELECTOR_CLIENT_SPENT = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom strong[data-qa="client-spend"] > span > span';
-const SELECTRO_CLIENT_HIRES = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom div[data-qa="client-hires"]';
+const SELECTOR_CLIENT_HIRES = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom div[data-qa="client-hires"]';
 const SELECTOR_AVG_HOURLY_RATE_PAID = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom li strong[data-qa="client-hourly-rate"]';
 const SELECTOR_HOURLY_RATE = '.up-card-section [data-cy="clock-timelog"] + strong';
 const SELECTOR_FIXED_PRICE = '.up-card-section [data-cy="fixed-price"] + strong';
@@ -21,7 +21,8 @@ const SELECTOR_COVER_LETTER = '.fe-proposal-additional-details.additonal-details
 const SELECTOR_JOB_QUESTIONS_AREA = '.fe-proposal-additional-details.additonal-details div.fe-proposal-job-questions.questions-area';
 const SELECTOR_QUESTIONS = '.fe-proposal-additional-details.additonal-details div.fe-proposal-job-questions.questions-area label';
 const SELECTOR_ATTACHMENTS_BUTTON = '.fe-proposal-additional-details.additonal-details div.attachments-area.mt-20 button.up-btn-link';
-const SELECTOR_DURATION = '.fe-proposal-job-estimated-duration div.up-dropdown-icon.up-icon';
+// const SELECTOR_DURATION = '.fe-proposal-job-estimated-duration div.up-dropdown-icon.up-icon';
+const SELECTOR_DURATION = '#dropdown-label-2';
 const SELECTOR_HOURLY_RATE_INPUT = '.fe-proposal-job-terms input#step-rate.up-input.text-right';
 const SELECTOR_DURATION_OPTION= '.fe-proposal-job-estimated-duration .up-menu-container li.up-menu-item';
 const SELECTOR_RADIO_INPUT = '.fe-proposal-job-terms .up-radio input';
@@ -34,13 +35,16 @@ const SELECTOR_BIDS = 'table.up-table.up-table-bordered > tbody > tr > td:nth-ch
 const SELECTOR_SET_BID_BUTTON = '.fe-proposal-boost-proposal button.up-btn.up-btn-default.m-0';
 const SELECTOR_BID_INPUT = '.fe-proposal-boost-proposal #boost-bid-amount';
 const SELECTOR_BID_BUTTON = '.fe-proposal-boost-proposal .up-btn.up-btn-default.up-btn-sm.m-0';
-const SELECTRO_QUESTIONS_TEXTAREA = '.fe-proposal-job-questions.questions-area .up-textarea';
+const SELECTOR_QUESTIONS_TEXTAREA = '.fe-proposal-job-questions.questions-area .up-textarea';
 const SELECTOR_TEAM = '';
 const SELECTOR_TEAM_OPTION = '';
 const SELECTOR_FREELANCER = '';
 const SELECTOR_FREELANCER_OPTION = '';
 const SELECTOR_SUBMIT_PROPOSAL = 'footer button.up-btn.up-btn-primary.m-0';
-const SELECTOR_SUCCESS_ALERT = '.up-alert.up-alert-success.up-alert-inline p';
+const SELECTOR_SUCCESS_NOTIFICATION = '.up-alert.up-alert-success.up-alert-inline p';
+const SELECTOR_CONNECTS = 'aside.up-sidebar div[data-test="connects-auction"]>div:nth-child(1)';
+const SELECTOR_AVAILABLE_CONNECTS = 'aside.up-sidebar div[data-test="connects-auction"]>div:nth-child(2)';
+const SELECTOR_MILESTONE_SECTION = '.fe-proposal-job-terms #milestoneMode';
 
 const scraper = {
     getReviews: async (page) => {
@@ -95,7 +99,7 @@ const scraper = {
     getClientHires: async(page) => {
         const data = {client_hires: null, active: null};
         try {
-            const value = await page.$eval(SELECTRO_CLIENT_HIRES, el => el.innerHTML);
+            const value = await page.$eval(SELECTOR_CLIENT_HIRES, el => el.innerHTML);
             const arrOfClientHires = value.split(',').map(str => +str.replace(/[^\d\.]*/g, ''));
             data.client_hires = arrOfClientHires[0];
             data.active = arrOfClientHires[1];
@@ -171,28 +175,43 @@ const scraper = {
             await scraper.closeModal(page)
             await page.waitForSelector(SELECTOR_APPLY_BUTTON, {timeout:3000});
             await page.click(SELECTOR_APPLY_BUTTON);
-            await page.waitForNavigation({waitUntil: 'domcontentloaded'});
         } catch (error) {
             console.log(error.message)
         }
     },
+    checkAvailableConnects: async(page) => {
+        const data = {requiredConnects: null, availableConnects: null};
+        try {
+            await page.waitForSelector(SELECTOR_CONNECTS, {timeout:5000});
+            const requiredConnects = await page.$eval(SELECTOR_CONNECTS, el => el.innerHTML);
+            if(requiredConnects){
+                data.requiredConnects = requiredConnects.replace(/[^\d\.]*/g, '')
+            }
+            const availableConnects = await page.$eval(SELECTOR_AVAILABLE_CONNECTS, el => el.innerHTML);
+            if(availableConnects){
+                data.availableConnects = availableConnects.replace(/[^\d\.]*/g, '');
+            }
+            return data
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+
     
 
-    // getTerms: async(page, jobType) => {
-    //     let terms = {}
-    //     try {
-    //         await page.waitForSelector('.fe-proposal-job-terms');
-            
-    //         if(jobType == "Fixed") {
-    //             terms.fixedJobQ = "How do you want to be paid?";
-    //         } else {
-    //             terms.hourlyJobQ = "What is the rate you'd like to bid for this job?";
-    //         }
-    //         return terms
-    //     } catch (error) {
-    //         console.log(error.message)
-    //     }
-    // },
+    getTerms: async(page, jobType) => {
+        let terms = {jobType}
+        try {
+            if(jobType == "Fixed") {
+                // await page.waitForSelector(SELECTOR_MILESTONE_SECTION, {timeout:5000});
+                const milestoneSection = await page.$(SELECTOR_MILESTONE_SECTION);
+                milestoneSection ? terms.milestone = true : terms.milestone = false
+            }
+            return terms
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
     // getBudget: async (page) => {
     //     try {
     //         await page.waitForTimeout(3000)
@@ -228,7 +247,7 @@ const scraper = {
     // },
     getDurationQuestion: async (page) => {
         try {
-            await page.waitForSelector(SELECTOR_DURATION_Q, {timeout: 5000});
+            await page.waitForSelector(SELECTOR_DURATION_Q, {timeout: 2000});
             const value = await page.$eval(SELECTOR_DURATION_Q, el => el.textContent);
             if(value) return true
         } catch (error) {
@@ -275,8 +294,8 @@ const scraper = {
         try {
             // const area = await page.$(SELECTOR_JOB_QUESTIONS_AREA);
             // if (!area) return [];
-            await page.waitForSelector(SELECTOR_JOB_QUESTIONS_AREA);
-            await page.$eval(SELECTOR_JOB_QUESTIONS_AREA, el => el.textContent);
+            // await page.waitForSelector(SELECTOR_JOB_QUESTIONS_AREA);
+            // await page.$eval(SELECTOR_JOB_QUESTIONS_AREA, el => el.textContent);
             const values = await page.$$eval(SELECTOR_QUESTIONS, el => el.map(item => item.textContent.trim()));
             return values;
         } catch (error) {
@@ -295,8 +314,9 @@ const scraper = {
     // },
     setDuration: async (page, data) => {
         try {
-            await page.waitForSelector(SELECTOR_DURATION);
-            await page.click(SELECTOR_DURATION);
+            // await page.waitForSelector(SELECTOR_DURATION);
+            const dropDown = await page.$(SELECTOR_DURATION);
+            await dropDown.click();
             await page.waitForTimeout(1000)
             await page.waitForSelector(SELECTOR_DURATION_OPTION);
             const values = await page.$$eval(SELECTOR_DURATION_OPTION, el => el.map(item => {
@@ -315,7 +335,7 @@ const scraper = {
         try {
             await page.waitForSelector(SELECTOR_HOURLY_RATE_INPUT);
             const input = await page.$(SELECTOR_HOURLY_RATE_INPUT);
-            await input.click({ clickCount: 3 })
+            await input.click({ clickCount: 3 });
             await input.type(value);
         } catch (error) {
             console.log(error.message)
@@ -324,8 +344,8 @@ const scraper = {
     setFixedPrice: async (page, data) => {
         const activeRadio = data.filter(item => item.active)[0];
         try {
-            await page.waitForSelector(SELECTOR_RADIO_INPUT);
             const radioInputs = await page.$$(SELECTOR_RADIO_INPUT);
+            if (radioInputs.length == 0) return await scraper.setFixedPriceByProject(page, activeRadio.value);
             if (activeRadio.type == 'milestone'){
                 await radioInputs[0].click();
                 await scraper.setFixedPriceByMilestone(page, activeRadio.value)
@@ -400,7 +420,7 @@ const scraper = {
     },
     setBids: async (page, value) => {
         try {
-            await page.waitForSelector(SELECTOR_SET_BID_BUTTON, {timeout: 1000});
+            await page.waitForSelector(SELECTOR_SET_BID_BUTTON, {timeout: 2000});
             await page.click(SELECTOR_SET_BID_BUTTON);
             await page.waitForSelector(SELECTOR_BID_INPUT);
             const input = await page.$(SELECTOR_BID_INPUT);
@@ -414,8 +434,8 @@ const scraper = {
     },
     setAnswers: async(page, values) => {
         try {
-            await page.waitForSelector(SELECTRO_QUESTIONS_TEXTAREA);
-            const textareas = await page.$$(SELECTRO_QUESTIONS_TEXTAREA);
+            await page.waitForSelector(SELECTOR_QUESTIONS_TEXTAREA);
+            const textareas = await page.$$(SELECTOR_QUESTIONS_TEXTAREA);
             for(let i = 0; i < values.length; i++) {
                 await textareas[i].type(values[i]);
             }
@@ -471,15 +491,14 @@ const scraper = {
             console.log(error.message)
         }
     },
-    getSuccessAlert: async (page) => {
+    getSuccessNotification: async (page) => {
         try {
-            await page.waitForNavigation({timeout: 3000});
-            await page.waitForSelector(SELECTOR_SUCCESS_ALERT, {timeout: 3000});
-            const value = await page.$eval(SELECTOR_SUCCESS_ALERT, el => el.textContent);
+            await page.waitForNavigation({waitUntil: 'load'})
+            await page.waitForSelector(SELECTOR_SUCCESS_NOTIFICATION, {timeout: 8000});
+            const value = await page.$eval(SELECTOR_SUCCESS_NOTIFICATION, el => el.textContent);
             return value
         } catch (error) {
-            console.log(error.message)
-            return 'something went wrong'
+            return error.message
         }
     },
 };

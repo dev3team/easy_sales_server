@@ -11,7 +11,7 @@ const startCluster = async () => {
 		puppeteerExtra.use(StealthPlugin())
 	    cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_PAGE,
-            maxConcurrency: 3,
+            maxConcurrency: 5,
 			puppeteer: puppeteerExtra,
 			puppeteerOptions: {
 				headless: true,
@@ -23,7 +23,7 @@ const startCluster = async () => {
 					'--no-sandbox', 
 					'--no-zygote' 
 				]},
-			timeout: 60000,
+			timeout: 120000,
             // monitor: true
         });
 	} catch (err) {

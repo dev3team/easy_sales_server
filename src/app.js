@@ -1,5 +1,5 @@
 const server = require('./server');
-const cronPing = require('./cron-ping');
+const cronPing = require('./cron/cron-ping');
 const scraper = require('./scraper/index');
 const PORT = process.env.PORT
 
@@ -13,6 +13,5 @@ const log = (error) => {
 
 server(PORT, log);
 scraper();
-cronPing();    
-
+cronPing();
 

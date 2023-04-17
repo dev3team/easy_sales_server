@@ -7,6 +7,7 @@ const Profile = require('upwork-api/lib/routers/jobs/profile.js').Profile;
 const ParsedJobsModel = require('../db/Models/ParsedJobsModel');
 const JobsModel = require('../db/Models/JobsModel');
 const UserModel = require('../db/Models/UserModel');
+const ConnectMongoDB = require('../db/ConnectMongoDB')
 // const db = require('./../db');
 
 const { env: { PORT }} = process;
@@ -51,40 +52,40 @@ const upwork = {
 		}
 
 		const jobs = new Search(api);
-
+    
 		await jobs.find(paramsSearch, function (error, data) {
 		if (error) {
 			res.status(400).send(error);
 		}
 		//  res.status(200).send(upworkScore(data, min_score));
 		// d = data.jobs.filter(item => item.job_type == "Hourly" && item.budget != 0)
-		res.status(200).send(data.jobs)
+		res.status(200).send(data?.jobs)
 		});
 	},
 
 	getParsedJobs: async (data, res) => {
+    await ConnectMongoDB();
 		const QUANTITY_MAX = 8;
 		const skip = +data.skip + QUANTITY_MAX;
-
 		const doc = await ParsedJobsModel.findOne();
 		const currentLength = doc.parsed.length;
-
 		const quantity = (currentLength - skip < 0 ) ? currentLength%QUANTITY_MAX : QUANTITY_MAX;
 		let isListEnd = (currentLength - skip < 0) ? true : false;
-
 		const parsedDoc = await ParsedJobsModel.findOne({}, {parsed: {$slice: [-skip, quantity] }});
 		const jobs = parsedDoc.parsed.reverse()
 		
 		res.status(200).json({jobs, isListEnd})
 	},
 	getJobProfile: async (data, res) => {
+    await ConnectMongoDB();
 		const jobId = data.params.id;
-		const jobsDoc = await JobsModel.findOne();
-		const job = jobsDoc.jobs.find(job => job?.id == jobId);
-
-    const parsedJobDoc = await ParsedJobsModel.findOne();
-    const parsedJob = parsedJobDoc.parsed.find(job => job?.id == jobId)
-		res.status(200).json({job: job, parsed: parsedJob})
+    const jobsDoc = await JobsModel.findOne({}, {
+      jobs: {$elemMatch: {id: jobId}}
+    })
+    const parsedJobDoc = await ParsedJobsModel.findOne({}, {
+      parsed: {$elemMatch: {id: jobId}}
+    });
+		res.status(200).json({job: jobsDoc.jobs[0], parsed: parsedJobDoc.parsed[0]})
 	},
 
   // getFilteredJobs: async (data, res) => {
@@ -180,18 +181,18 @@ const upwork = {
       accessParams.accessTokenSecret = accessTokenSecret;
 
       const options = JSON.stringify(accessParams);
-      fs.writeFile('./options.json', options, (err) => {
-        if ( err ) {
-          console.log('Error saving options data.', err.message);
-          return;
-        }
-        console.log('Data saved success.')
-      })
+      // fs.writeFile('./options.json', options, (err) => {
+      //   if ( err ) {
+      //     console.log('Error saving options data.', err.message);
+      //     return;
+      //   }
+      //   console.log('Data saved success.')
+      // })
       // Here you can store access token in safe place
     });
   },
   saveToken: async (data, res) => {
-    console.log(data, 'data');
+    await ConnectMongoDB()
     const {userId, email, token} = data
     const admin = await UserModel.findOne({userId});
     if (admin){

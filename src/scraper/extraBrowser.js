@@ -20,6 +20,6 @@ const startBrowser = async () => {
 	return extraBrowser;
 }
 
-module.exports = {
-    startBrowser
-}
+// module.exports = {
+//     startBrowser
+// }
