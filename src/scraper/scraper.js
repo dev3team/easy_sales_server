@@ -7,8 +7,8 @@ const SELECTOR_HIRE_RATE = 'ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0
 const SELECTOR_CLIENT_SPENT = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom strong[data-qa="client-spend"] > span > span';
 const SELECTOR_CLIENT_HIRES = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom div[data-qa="client-hires"]';
 const SELECTOR_AVG_HOURLY_RATE_PAID = 'div.cfe-ui-job-about-client ul.list-unstyled.cfe-ui-job-about-client-visitor.m-0-bottom li strong[data-qa="client-hourly-rate"]';
-const SELECTOR_HOURLY_RATE = '.up-card-section [data-cy="clock-timelog"] + strong';
-const SELECTOR_FIXED_PRICE = '.up-card-section [data-cy="fixed-price"] + strong';
+const SELECTOR_HOURLY_RATE = '.up-card-section [data-cy="clock-timelog"] + div > div';
+const SELECTOR_FIXED_PRICE = '.up-card-section [data-test="job-budget"] strong';
 const SELECTOR_EXPERTISE = 'section.up-card-section ul.cfe-ui-job-features.p-0 li div.header div[data-cy="expertise"] + strong';
 const SELECTOR_APPLY_BUTTON = 'button[aria-label="Apply Now"]';
 const SELECTOR_MODAL_BUTTON = 'div.up-modal-footer button.up-btn.up-btn-primary';
@@ -22,14 +22,14 @@ const SELECTOR_JOB_QUESTIONS_AREA = '.fe-proposal-additional-details.additonal-d
 const SELECTOR_QUESTIONS = '.fe-proposal-additional-details.additonal-details div.fe-proposal-job-questions.questions-area label';
 const SELECTOR_ATTACHMENTS_BUTTON = '.fe-proposal-additional-details.additonal-details div.attachments-area.mt-20 button.up-btn-link';
 // const SELECTOR_DURATION = '.fe-proposal-job-estimated-duration div.up-dropdown-icon.up-icon';
-const SELECTOR_DURATION = '#dropdown-label-2';
-const SELECTOR_HOURLY_RATE_INPUT = '.fe-proposal-job-terms input#step-rate.up-input.text-right';
+const SELECTOR_DURATION = '.fe-proposal-job-estimated-duration .up-dropdown';
+const SELECTOR_HOURLY_RATE_INPUT = '.fe-proposal-job-terms input#step-rate';
 const SELECTOR_DURATION_OPTION= '.fe-proposal-job-estimated-duration .up-menu-container li.up-menu-item';
 const SELECTOR_RADIO_INPUT = '.fe-proposal-job-terms .up-radio input';
 const SELECTOR_BY_PROJECT_INPUT = '.fe-proposal-job-terms input#charged-amount-id';
 const SELECTOR_ADD_MILESTONE_BUTTON = '.up-fe-milestones button.up-btn-link.milestone-add';
 const SELECTOR_DESCRIPTION_INPUT = '.up-fe-milestones input[data-test="milestone-description"]';
-const SELECTOR_AMOUNT_INPUT = '.up-fe-milestones input[inputmode="decimal"]';
+const SELECTOR_AMOUNT_INPUT = '.up-fe-milestone-amount input';
 const SELECTOR_COVER_LETTER_TEXTAREA = '.fe-proposal-additional-details.additonal-details textarea.up-textarea';
 const SELECTOR_BIDS = 'table.up-table.up-table-bordered > tbody > tr > td:nth-child(2)';
 const SELECTOR_SET_BID_BUTTON = '.fe-proposal-boost-proposal button.up-btn.up-btn-default.m-0';
@@ -55,7 +55,7 @@ const scraper = {
             data.average_rating = arrReviews[0];
             data.reviews = arrReviews[1]
         } catch (error) {
-            console.log(error.message)
+            // console.log(error.message)
         }
         return data
     },
@@ -68,7 +68,7 @@ const scraper = {
             const city = await page.$eval(SELECTOR_CITY, el => el.innerHTML)
             location.city = city.trim();
         } catch (error) {
-            console.log(error.message)
+            // console.log(error.message)
         }
         return location
     },
@@ -81,7 +81,7 @@ const scraper = {
             data.hire_rate = arrOfValue[0] + '%';
             data.open_job = arrOfValue[1];
         } catch (error) {
-            console.log(error.message)
+            // console.log(error.message)
         }
         return data
     }, 
@@ -91,7 +91,7 @@ const scraper = {
             const value = await page.$eval(SELECTOR_CLIENT_SPENT, el => el.innerHTML);
             return value.trim() || null
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
             return null
         }
     },
@@ -104,7 +104,7 @@ const scraper = {
             data.client_hires = arrOfClientHires[0];
             data.active = arrOfClientHires[1];
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
         }
         return data
     },
@@ -114,7 +114,7 @@ const scraper = {
             const value = await page.$eval(SELECTOR_AVG_HOURLY_RATE_PAID, el => el.textContent);
             return +value?.replace(/[^\d\.]*/g, '')
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
             return null
         }
     },
@@ -122,9 +122,9 @@ const scraper = {
     getHourlyRate: async (page) => {
         try {
             const value = await page.$eval(SELECTOR_HOURLY_RATE, el => el.textContent);
-            return value.trim();
+            return value.replace(/(\r\n|\n|\r)/gm, "").split(" ").join("");
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
             return null
         }
     },
@@ -133,7 +133,7 @@ const scraper = {
             const value = await page.$eval(SELECTOR_FIXED_PRICE, el => el.textContent);
             return value.trim();
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
             return null
         }
     },
@@ -142,7 +142,7 @@ const scraper = {
             const value = await page.$eval(SELECTOR_EXPERTISE, el => el.textContent);
             return value.trim();
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
             return null
         }
     },
@@ -372,7 +372,6 @@ const scraper = {
             for(let i = 0; i < values.length; i++){
                 await scraper.setMilestone(page, values[i]);
                 if (values.length - i > 1){
-                    await page.waitForSelector(SELECTOR_ADD_MILESTONE_BUTTON);
                     const btnAddMilestone = await page.$(SELECTOR_ADD_MILESTONE_BUTTON);
                     await btnAddMilestone.click();
                 }
@@ -383,15 +382,12 @@ const scraper = {
     },
     setMilestone: async(page, value) => {
         try {
-            await page.waitForSelector(SELECTOR_DESCRIPTION_INPUT);
-            const inputsDescr = await page.$$(SELECTOR_DESCRIPTION_INPUT);
-            const lastInputDescr = inputsDescr[inputsDescr.length-1];
-            await lastInputDescr.type(value.description);
-
-            await page.waitForSelector(SELECTOR_AMOUNT_INPUT);
             const inputsAmount = await page.$$(SELECTOR_AMOUNT_INPUT);
             const lastInputAmount = inputsAmount[inputsAmount.length-1];
             await lastInputAmount.type(value.amount);
+            const inputsDescr = await page.$$(SELECTOR_DESCRIPTION_INPUT);
+            const lastInputDescr = inputsDescr[inputsDescr.length-1];
+            await lastInputDescr.type(value.description);
         } catch (error) {
             console.log(error.message)
         }
@@ -488,7 +484,7 @@ const scraper = {
             const button = await page.$(SELECTOR_SUBMIT_PROPOSAL);
             await button.click();
         } catch (error) {
-            console.log(error.message)
+            console.log(error.message, "error submitProposal")
         }
     },
     getSuccessNotification: async (page) => {
@@ -498,6 +494,7 @@ const scraper = {
             const value = await page.$eval(SELECTOR_SUCCESS_NOTIFICATION, el => el.textContent);
             return value
         } catch (error) {
+            console.log(error.message, "error => getSuccessNotification")
             return error.message
         }
     },
